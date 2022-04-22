@@ -5,16 +5,32 @@ import Big from 'big.js';
 import Form from './components/Form';
 import SignIn from './components/SignIn';
 import Messages from './components/Messages';
+import {providers}   from 'near-api-js';
 
 const SUGGESTED_DONATION = '0';
 const BOATLOAD_OF_GAS = Big(3).times(10 ** 13).toFixed();
 
-const App = ({ contract, currentUser, nearConfig, wallet }) => {
+const App = ({ currentUser, nearConfig, selector }) => {
   const [messages, setMessages] = useState([]);
+
+  const provider = new providers.JsonRpcProvider({
+    url: selector.network.nodeUrl,
+});
 
   useEffect(() => {
     // TODO: don't just fetch once; subscribe!
-    contract.getMessages().then(setMessages);
+ 
+
+  console.log(selector.getContractId())
+
+  provider.query({
+      request_type: "call_function",
+      account_id: selector.getContractId(),
+      method_name: "getMessages",
+      args_base64: "",
+      finality: "optimistic",
+  }).then((res) => setMessages(JSON.parse(Buffer.from(res.result).toString())));
+
   }, []);
 
   const onSubmit = (e) => {
@@ -24,35 +40,53 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
 
     fieldset.disabled = true;
 
-    // TODO: optimistically update page with new message,
-    // update blockchain data in background
-    // add uuid to each message, so we know which one is already known
-    contract.addMessage(
-      { text: message.value },
-      BOATLOAD_OF_GAS,
-      Big(donation.value || '0').times(10 ** 24).toFixed()
-    ).then(() => {
-      contract.getMessages().then(messages => {
-        setMessages(messages);
+    selector.signAndSendTransaction({
+      signerId: window.accountId,
+      actions: [{
+          type: "FunctionCall",
+          params: {
+              methodName: "add_message",
+              args: {
+                  text: message.value,
+              },
+              gas: BOATLOAD_OF_GAS,
+              deposit: Big(donation.value || '0').times(10 ** 24).toFixed(),
+          },
+      }]
+  }).catch((err) => {
+      alert("Failed to add message");
+      throw err;
+
+  }).then(() => {
+
+    provider.query({
+
+        request_type: "call_function",
+        account_id: selector.getContractId(),
+        method_name: "getMessages",
+        args_base64: "",
+        finality: "optimistic",
+
+      }).then((res) => {
+
+        setMessages(JSON.parse(Buffer.from(res.result).toString()))
         message.value = '';
         donation.value = SUGGESTED_DONATION;
         fieldset.disabled = false;
         message.focus();
+
       });
-    });
+  });
+
+
   };
 
   const signIn = () => {
-    wallet.requestSignIn(
-      {contractId: nearConfig.contractName, methodNames: [contract.addMessage.name]}, //contract requesting access
-      'NEAR Guest Book', //optional name
-      null, //optional URL to redirect to if the sign in was successful
-      null //optional URL to redirect to if the sign in was NOT successful
-    );
+    selector.show()
   };
 
   const signOut = () => {
-    wallet.signOut();
+    selector.signOut();
     window.location.replace(window.location.origin + window.location.pathname);
   };
 
@@ -75,10 +109,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
 };
 
 App.propTypes = {
-  contract: PropTypes.shape({
-    addMessage: PropTypes.func.isRequired,
-    getMessages: PropTypes.func.isRequired
-  }).isRequired,
+
   currentUser: PropTypes.shape({
     accountId: PropTypes.string.isRequired,
     balance: PropTypes.string.isRequired
@@ -86,10 +117,7 @@ App.propTypes = {
   nearConfig: PropTypes.shape({
     contractName: PropTypes.string.isRequired
   }).isRequired,
-  wallet: PropTypes.shape({
-    requestSignIn: PropTypes.func.isRequired,
-    signOut: PropTypes.func.isRequired
-  }).isRequired
+  selector: PropTypes.object
 };
 
 export default App;
