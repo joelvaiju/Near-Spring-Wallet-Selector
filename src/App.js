@@ -10,7 +10,7 @@ import {providers}   from 'near-api-js';
 const SUGGESTED_DONATION = '0';
 const BOATLOAD_OF_GAS = Big(3).times(10 ** 13).toFixed();
 
-const App = ({ currentUser, nearConfig, selector }) => {
+const App = ({ currentUser,  selector }) => {
   const [messages, setMessages] = useState([]);
 
   const provider = new providers.JsonRpcProvider({
@@ -51,9 +51,10 @@ const App = ({ currentUser, nearConfig, selector }) => {
               },
               gas: BOATLOAD_OF_GAS,
               deposit: Big(donation.value || '0').times(10 ** 24).toFixed(),
-          },
-      }]
+          }
+      }],
   }).catch((err) => {
+    console.log(err)
       alert("Failed to add message");
       throw err;
 
@@ -86,8 +87,8 @@ const App = ({ currentUser, nearConfig, selector }) => {
   };
 
   const signOut = () => {
-    selector.signOut();
-    window.location.replace(window.location.origin + window.location.pathname);
+    selector.signOut()
+    
   };
 
   return (
@@ -114,9 +115,7 @@ App.propTypes = {
     accountId: PropTypes.string.isRequired,
     balance: PropTypes.string.isRequired
   }),
-  nearConfig: PropTypes.shape({
-    contractName: PropTypes.string.isRequired
-  }).isRequired,
+
   selector: PropTypes.object
 };
 

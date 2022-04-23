@@ -12,7 +12,10 @@ html {
   --secondary: var(--royal);
   --tertiary: #FF585D;
 
-  background-color: var(--bg);
+  animation-name: backgroundColorPalette;
+  animation-duration: 10s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
   color: var(--fg);
   font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   font-size: calc(.65em + 0.7vw);
@@ -22,6 +25,7 @@ html {
     background: var(--secondary);
     color: var(--bg);
   }
+
 
   @media (prefers-color-scheme: dark) {
     --bg: #25282A;
@@ -35,10 +39,39 @@ html {
   }
 }
 
+@keyframes backgroundColorPalette {
+  0% {
+    background: #ee6055;
+  }
+  25% {
+    background: #60d394;
+  }
+  50% {
+    background: #aaf683;
+  }
+  75% {
+    background: #ffd97d;
+  }
+  100% {
+    background: #ff9b85;
+  }
+}
+
+#card{
+  border-style: groove;
+  border-width: thick;
+  border-radius: 10px;
+  height: auto;
+  width: 80%;
+  margin-bottom: 20px;
+}
+
+
 body {
   margin: 0 auto;
   padding: 0 1em;
   max-width: 40em;
+
 }
 
 fieldset {
@@ -119,4 +152,18 @@ button {
   border-left: 0.25em solid var(--secondary);
   padding-left: 0.25em;
   margin-left: -0.5em;
+  
+}
+.not-premium {
+  border-left: 0.25em solid var(--grey);
+  padding-left: 0.25em;
+  margin-left: -0.5em;
+}
+
+.message{
+
+  font-family: "Times New Roman", Times, serif;
+}
+.datetime{
+  font-size: small;
 }

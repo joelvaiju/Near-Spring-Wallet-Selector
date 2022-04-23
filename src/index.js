@@ -20,7 +20,7 @@ async function initContract() {
 
   const selector = await NearWalletSelector.init({
     network: "testnet",
-    contractId: "dev-1650658697814-32747213993531",
+    contractId: contractName,
     wallets: [
       setupNearWallet({iconUrl: nearWalletIconUrl}),
       setupSender({iconUrl: senderIconUrl}),
@@ -28,28 +28,17 @@ async function initContract() {
     ],
   });
 
-  
-/*
-  // create a keyStore for signing transactions using the user's key
-  // which is located in the browser local storage after user logs in
-  const keyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore();
-
-  // Initializing connection to the NEAR testnet
-  const near = await nearAPI.connect({ keyStore, ...nearConfig });
-
-  // Initialize wallet connection
-  const walletConnection = new nearAPI.WalletConnection(near);
-*/
-window.sector = selector;
+window.selector = selector;
 
 selector.on("signIn", () => window.location.replace(window.location.origin + window.location.pathname));
+selector.on("signOut", () => window.location.replace(window.location.origin + window.location.pathname));
   // Load in user's account data
   
   let currentUser;
   if (selector.isSignedIn()) {
 
     const account = (await selector.getAccounts())[0];
-    console.log(account)
+    
     window.accountId = account.accountId;
     const provider = new nearAPI.providers.JsonRpcProvider({
       url: selector.network.nodeUrl,
